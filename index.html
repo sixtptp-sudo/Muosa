@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6b4f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>تصفية السحالات</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#1d2a26;--mute:#6b7772;--line:#dcd8cc;--acc:#1f6b4f;--accink:#fff;--warn:#b3402a}
+@media(prefers-color-scheme:dark){:root{--bg:#151b19;--card:#1e2724;--ink:#e8efec;--mute:#93a29b;--line:#2f3b37;--acc:#4fb88c;--accink:#0b1f17;--warn:#e8836c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Segoe UI",Tahoma,"Noto Naskh Arabic",sans-serif;font-size:17px;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:560px;margin:0 auto;padding:14px}
+h1{font-size:20px;margin:6px 0 12px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;overflow-x:auto}
+.row{display:flex;gap:8px}
+input,select,button,textarea{font:inherit;color:var(--ink)}
+input,select,textarea{flex:1;min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+button{padding:7px 12px;border:0;border-radius:8px;background:var(--acc);color:var(--accink);font-weight:700;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.x{background:none;color:var(--warn);padding:4px 10px;font-size:20px}
+label{display:block;font-size:14px;color:var(--mute);margin-bottom:4px}
+.big input{font-size:18px;font-weight:700;text-align:center}
+table{width:100%;border-collapse:collapse}
+td{padding:9px 4px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.price{font-weight:800;color:var(--acc)}
+.mute{color:var(--mute);font-size:14px}
+.list{max-height:240px;overflow-y:auto}
+.hide{display:none!important}
+#md{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50}
+#md .box{background:var(--card);border-radius:12px;padding:16px;width:min(320px,90%)}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{flex:1}
+.frm th{background:var(--acc);color:var(--accink);font-weight:700;text-align:center;border:1px solid var(--bg);font-size:12px;padding:6px 2px}
+.frm td{border:1px solid var(--acc);text-align:center;padding:6px 2px;font-size:14px}
+.frm tr.tot td{border-top:2px solid var(--acc);background:var(--bg);font-weight:800}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips button{background:var(--bg);color:var(--ink);border:1px solid var(--line);font-weight:500}
+.err{color:var(--warn);font-size:14px;min-height:20px}
+@media print{.noprint{display:none!important}body{background:#fff;color:#000}.card{border:0}}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><h1>تصفية السحالات</h1><span id="st" class="mute noprint"></span></div>
+
+<div id="login" class="card hide">
+  <div style="font-weight:800;margin-bottom:8px">تسجيل الدخول</div>
+  <label>البريد الإلكتروني</label><input id="le" type="email" autocomplete="username" style="width:100%">
+  <label style="margin-top:8px">كلمة السر</label><input id="lp" type="password" autocomplete="current-password" style="width:100%">
+  <div id="lerr" class="err"></div>
+  <button id="lbtn" style="width:100%">دخول</button>
+</div>
+
+<div id="app" class="hide">
+<div class="tabs noprint"><button id="t1">السحالات المفتوحة</button><button id="t2" class="ghost">المصفّاة</button><button id="t3" class="ghost">الديون</button></div>
+
+<div id="v1">
+  <div class="card noprint">
+    <label>اسم الفلاح</label>
+    <div class="row"><input id="nf" placeholder="اكتب اسم الفلاح" autocomplete="off" style="font-size:16px;font-weight:700"><button id="print" class="ghost">طباعة</button></div>
+    <div id="sg" class="chips hide"></div>
+  </div>
+  <div id="work">
+    <div class="card noprint big">
+      <div class="row"><div style="flex:2"><label>نوع المحصول</label><input id="ty" placeholder="مثال: طماطم" autocomplete="off" style="width:100%;font-size:16px"></div><div style="flex:1"><label>القطعة</label><input id="q" type="number" inputmode="decimal" step="any" placeholder="500" style="width:100%;font-size:16px"></div></div>
+      <div id="tg" class="chips hide" style="margin-bottom:8px"></div>
+      <div class="row">
+        <div style="flex:1"><label>العدد</label><input id="c" type="number" inputmode="numeric" step="any"></div>
+        <div style="flex:1"><label>الوزن</label><input id="w" type="number" inputmode="decimal" step="any"></div>
+        <div style="flex:1"><label>السعر</label><input id="p" type="number" inputmode="decimal" step="any"></div>
+      </div>
+      <button id="add" style="width:100%;margin-top:8px;font-size:16px">حفظ</button>
+    </div>
+    <div class="card">
+      <div style="font-weight:800;margin-bottom:4px" id="ttl"></div>
+      <table class="frm"><thead><tr><th>المبلغ الكلي</th><th>الوزن</th><th>السعر</th><th>العدد</th><th>القطعة</th><th>نوع المحصول</th></tr></thead><tbody id="sum"></tbody></table>
+    </div>
+    <div class="card noprint">
+      <div class="mute" style="margin-bottom:4px">العمليات المسجلة (<span id="cnt">0</span>)</div>
+      <div class="list"><table><tbody id="rows"></tbody></table></div>
+    </div>
+    <button id="close" style="width:100%" class="noprint">تصفية السحال وإغلاقه</button>
+  </div>
+  <p id="empty" class="mute">أضف اسم فلاح للبدء. السحال يبقى مفتوحاً بكل أوزانه إلى أن تصفّيه.</p>
+</div>
+
+<div id="v2" class="hide"></div>
+
+<div id="v3" class="hide">
+  <div class="card noprint big">
+    <div class="row"><div style="flex:2"><label>الاسم</label><input id="dn" autocomplete="off" style="width:100%;font-size:16px"></div><div style="flex:1.5"><label>التاريخ</label><input id="dd" type="date" style="width:100%;font-size:14px"></div></div>
+    <div class="row" style="margin-top:8px"><div style="flex:1"><label>المبلغ</label><input id="da" type="number" inputmode="decimal" step="any" style="width:100%"></div><div style="flex:2"><label>الملاحظة</label><input id="dt" autocomplete="off" style="width:100%;font-size:16px;text-align:start;font-weight:400"></div></div>
+    <button id="dadd" style="width:100%;margin-top:8px;font-size:16px">حفظ الدين</button>
+  </div>
+  <div class="row noprint" style="margin-bottom:8px"><button id="ds1" style="flex:1">سجل الأشخاص</button><button id="ds2" class="ghost" style="flex:1">ملخص الجميع</button><button id="dpr" class="ghost">طباعة</button></div>
+  <div id="dv1"><div class="card noprint"><input id="ds" placeholder="ابحث باسم الشخص" autocomplete="off" style="width:100%;font-size:16px"></div><div id="dl"></div><div class="card" id="dpc"></div></div>
+  <div id="dv2" class="hide"><div class="card" id="dsm"></div></div>
+</div>
+
+<div class="card noprint" style="margin-top:12px">
+  <div class="mute" style="margin-bottom:6px">الإعدادات</div>
+  <div class="row" style="flex-wrap:wrap">
+    <button id="cp" class="ghost">تغيير الرمز السري</button>
+    <button id="bk" class="ghost">نسخة احتياطية</button>
+    <button id="rs" class="ghost">استرجاع</button>
+    <button id="so" class="ghost hide">تسجيل خروج</button>
+  </div>
+  <div id="rsp" class="hide" style="margin-top:8px">
+    <div class="mute" style="margin-bottom:4px">اختر ملف النسخة الاحتياطية، أو الصق محتواها هنا</div>
+    <input id="rf" type="file" accept=".json,application/json" style="width:100%;margin-bottom:6px">
+    <textarea id="rt" rows="4" style="width:100%;font-size:13px;direction:ltr"></textarea>
+    <div id="rmsg" class="err"></div>
+    <button id="rgo" style="width:100%">استرجاع البيانات</button>
+  </div>
+</div>
+</div>
+
+<div id="md" class="hide"><div class="box"><div id="mt" style="font-weight:800;margin-bottom:8px"></div><input id="mi" type="password" inputmode="numeric" autocomplete="off" style="width:100%;text-align:center;font-size:20px"><div id="me" class="err"></div><div class="row" style="margin-top:8px"><button id="mok">تأكيد</button><button id="mno" class="ghost">إلغاء</button></div></div></div>
+</main>
+
+<script type="module">
+import cfg from './firebase-config.js';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f = n => (+n).toLocaleString('en-US', {maximumFractionDigits: 2});
+const td = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const fd = s => s ? s.split('-').reverse().join('/') : '-';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const COLS = ['sahals', 'rows', 'debts', 'pays', 'meta'];
+const hs = s => { let h = 5381; for (const c of s) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return String(h); };
+
+/* ---------- واجهة الحفظ: محلي أو Firebase ---------- */
+const Local = {
+  init(cb) {
+    this.cb = cb; this.d = {};
+    let o = {}; try { o = JSON.parse(localStorage.getItem('sahal2') || '{}'); } catch (e) {}
+    COLS.forEach(c => this.d[c] = o[c] || {});
+    this.emit();
+  },
+  emit() { try { localStorage.setItem('sahal2', JSON.stringify(this.d)); } catch (e) {} this.cb(this.d, false); },
+  set(c, id, o) { this.d[c][id] = {...o, id}; this.emit(); },
+  del(c, id) { delete this.d[c][id]; this.emit(); },
+  setMany(c, items) { items.forEach(o => this.d[c][o.id] = o); this.emit(); },
+  delMany(c, ids) { ids.forEach(id => delete this.d[c][id]); this.emit(); }
+};
+const DB = {
+  impl: Local,
+  set: (...a) => DB.impl.set(...a), del: (...a) => DB.impl.del(...a),
+  setMany: (...a) => DB.impl.setMany(...a), delMany: (...a) => DB.impl.delMany(...a)
+};
+
+let FBH = null; // مراجع Firebase
+const FB = {
+  start(cb) {
+    const {db, collection, onSnapshot} = FBH;
+    this.d = {}; this.pend = {};
+    COLS.forEach(c => {
+      this.d[c] = {};
+      onSnapshot(collection(db, c), snap => {
+        snap.docChanges().forEach(ch => {
+          if (ch.type === 'removed') delete this.d[c][ch.doc.id];
+          else this.d[c][ch.doc.id] = {...ch.doc.data(), id: ch.doc.id};
+        });
+        this.pend[c] = snap.metadata.hasPendingWrites;
+        cb(this.d, Object.values(this.pend).some(Boolean));
+      }, err => { console.error(err); setStatus('لا توجد صلاحية، راجع قواعد الأمان'); });
+    });
+  },
+  clean(o) { const x = JSON.parse(JSON.stringify(o)); delete x.id; return x; },
+  set(c, id, o) { const {db, doc, setDoc} = FBH; setDoc(doc(db, c, id), this.clean(o)).catch(console.error); },
+  del(c, id) { const {db, doc, deleteDoc} = FBH; deleteDoc(doc(db, c, id)).catch(console.error); },
+  async batchRun(c, list, fn) {
+    const {db, writeBatch} = FBH;
+    for (let i = 0; i < list.length; i += 400) {
+      const b = writeBatch(db); list.slice(i, i + 400).forEach(x => fn(b, x)); b.commit().catch(console.error);
+    }
+  },
+  setMany(c, items) { const {db, doc} = FBH; this.batchRun(c, items, (b, o) => b.set(doc(db, c, o.id), this.clean(o))); },
+  delMany(c, ids) { const {db, doc} = FBH; this.batchRun(c, ids, (b, id) => b.delete(doc(db, c, id))); }
+};
+
+/* ---------- الحالة ---------- */
+let D = {sahals: {}, rows: {}, debts: {}, pays: {}, meta: {}};
+let S = {sahals: [], rows: [], debts: [], pays: []};
+let pending = false;
+const UI = (() => { try { return JSON.parse(localStorage.getItem('sahal_ui') || '{}'); } catch (e) { return {}; } })();
+const saveUI = () => { try { localStorage.setItem('sahal_ui', JSON.stringify(UI)); } catch (e) {} };
+const created = {};
+
+function setStatus(t) { $('st').textContent = t; }
+function updStatus() {
+  if (!navigator.onLine && cfg) setStatus('بدون إنترنت');
+  else if (pending) setStatus('بانتظار المزامنة');
+  else setStatus(cfg ? 'متزامن' : 'محلي');
+}
+function onData(d, pend) {
+  D = d; pending = !!pend;
+  S = {sahals: Object.values(d.sahals), rows: Object.values(d.rows), debts: Object.values(d.debts), pays: Object.values(d.pays)};
+  updStatus(); render();
+}
+window.addEventListener('online', updStatus); window.addEventListener('offline', updStatus);
+
+const nm = () => $('nf').value.trim();
+const cur = () => { const n = nm().toLowerCase(); return S.sahals.find(x => x.open && x.name.toLowerCase() === n); };
+const rowsOf = sid => S.rows.filter(r => r.sid === sid).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+const pinHash = () => (D.meta.pin || {}).h;
+
+/* ---------- ملخص السحال ---------- */
+function group(rows) {
+  const m = {};
+  rows.forEach(r => {
+    const t = r.t || '', q = r.q || 0, p = r.p || 0, k = t + '|' + p + '|' + q;
+    const o = m[k] || (m[k] = {t, p, q, w: 0, c: 0, a: 0});
+    o.w += r.w || 0; o.c += r.c || 0; o.a += (r.w || 0) * p + (r.c || 0) * q;
+  });
+  return Object.values(m).sort((a, b) => a.t.localeCompare(b.t, 'ar') || b.p - a.p || b.q - a.q);
+}
+function sumHTML(rows) {
+  const g = group(rows); let W = 0, T = 0, C = 0, P = 0;
+  let h = g.map(x => {
+    W += x.w; T += x.a; C += x.c; P += x.c * x.q;
+    return `<tr><td>${f(x.a)}</td><td>${x.w ? f(x.w) : '-'}</td><td class="price">${f(x.p)}</td><td>${f(x.c)}</td><td>${x.q > 0 && x.c > 0 ? f(x.c * x.q) + '<div class="mute" style="font-size:11px">' + f(x.q) + ' ×</div>' : '-'}</td><td>${esc(x.t) || '-'}</td></tr>`;
+  }).join('');
+  if (!g.length) h = '<tr><td colspan="6" class="mute">لا توجد عمليات بعد</td></tr>';
+  else h += `<tr class="tot"><td>${f(T)}</td><td>${f(W)}</td><td></td><td>${f(C)}</td><td>${P ? f(P) : ''}</td><td>الإجمالي</td></tr>` + (P ? `<tr class="tot"><td>${f(P)}</td><td colspan="5" style="text-align:start">فائدة القطع</td></tr>` : '');
+  return h;
+}
+const FH = '<thead><tr><th>المبلغ الكلي</th><th>الوزن</th><th>السعر</th><th>العدد</th><th>القطعة</th><th>نوع المحصول</th></tr></thead>';
+
+/* ---------- العرض ---------- */
+function render() {
+  drawSg();
+  const c = cur();
+  $('empty').classList.toggle('hide', !!nm());
+  $('ttl').textContent = nm() ? 'اسم الفلاح: ' + nm() : 'اكتب اسم الفلاح';
+  $('close').classList.toggle('hide', !c);
+  const rr = c ? rowsOf(c.id) : [];
+  $('sum').innerHTML = sumHTML(rr); $('cnt').textContent = rr.length;
+  $('rows').innerHTML = rr.slice().reverse().map(r => `<tr><td>${r.t ? esc(r.t) + '، ' : ''}${r.c ? f(r.c) + ' عدد، ' : ''}${f(r.w)} كغ</td><td>× ${f(r.p)}${r.q > 0 ? ' + ' + f(r.q) + ' ق' : ''}</td><td>${f((r.w || 0) * (r.p || 0) + (r.c || 0) * (r.q || 0))}</td><td><button class="x" data-i="${esc(r.id)}">×</button></td></tr>`).join('');
+  const cl = S.sahals.filter(x => !x.open).sort((a, b) => (b.cts || b.ts || 0) - (a.cts || a.ts || 0));
+  $('v2').innerHTML = cl.length ? cl.map(x => `<div class="card"><div style="font-weight:800">اسم الفلاح: ${esc(x.name)} <span class="mute">${esc(x.date || '')}</span></div><table class="frm">${FH}<tbody>${sumHTML(rowsOf(x.id))}</tbody></table><button class="ghost noprint" data-re="${esc(x.id)}" style="margin-top:8px">إعادة فتح</button> <button class="ghost noprint" data-del="${esc(x.id)}" style="margin-top:8px;color:var(--warn)">حذف</button></div>`).join('') : '<p class="mute">لا توجد سحالات مصفّاة.</p>';
+  rd();
+}
+function drawSg() {
+  const v = nm().toLowerCase(), all = S.sahals.filter(x => x.open), ex = all.some(x => x.name.toLowerCase() === v);
+  const l = all.filter(x => ex || !v || x.name.toLowerCase().includes(v));
+  $('sg').innerHTML = l.map(x => `<button type="button" data-n="${esc(x.name)}">${esc(x.name)}</button>`).join('');
+  $('sg').classList.toggle('hide', !l.length || document.activeElement !== $('nf'));
+}
+function drawTg() {
+  const v = $('ty').value.trim().toLowerCase();
+  const all = [...new Set(S.rows.map(r => r.t || '').filter(Boolean))];
+  const ex = all.some(t => t.toLowerCase() === v);
+  const l = all.filter(t => ex || !v || t.toLowerCase().includes(v));
+  $('tg').innerHTML = l.map(t => `<button type="button" data-n="${esc(t)}">${esc(t)}</button>`).join('');
+  $('tg').classList.toggle('hide', !l.length || document.activeElement !== $('ty'));
+}
+
+/* ---------- الديون ---------- */
+function rd() {
+  const d = S.debts.slice().sort((a, b) => (b.dt || '').localeCompare(a.dt || '') || (b.ts || 0) - (a.ts || 0));
+  const m = {};
+  d.forEach(x => { const k = x.n.toLowerCase(); const o = m[k] || (m[k] = {k, n: x.n, a: 0, p: 0, ds: [], ps: []}); o.a += x.a; o.ds.push(x); });
+  S.pays.forEach(y => { const o = m[y.k]; if (o) { o.p += y.a; o.ps.push(y); } });
+  const AL = Object.values(m).sort((a, b) => (b.a - b.p) - (a.a - a.p));
+  let TA = 0, TP = 0; AL.forEach(o => { TA += o.a; TP += o.p; });
+  const q = $('ds').value.trim().toLowerCase();
+  const L = AL.filter(o => !q || o.n.toLowerCase().includes(q));
+  const H = '<thead><tr><th>التاريخ</th><th>المبلغ</th><th>الملاحظة</th><th class="noprint"></th></tr></thead>';
+  $('dl').innerHTML = L.length ? L.map(o => {
+    const r = o.a - o.p; o.ps.sort((a, b) => (b.dt || '').localeCompare(a.dt || '') || (b.ts || 0) - (a.ts || 0));
+    return `<div class="card" data-k="${esc(o.k)}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>${esc(o.n)}</b><span style="font-weight:800;color:${r > 0 ? 'var(--warn)' : 'var(--acc)'}">${r > 0 ? 'المتبقي: ' + f(r) : 'مسدد'}</span></div><div class="mute" style="margin-bottom:6px">إجمالي الدين: ${f(o.a)} — المدفوع: ${f(o.p)}</div>`
+      + `<table class="frm">${H}<tbody>${o.ds.map(x => `<tr><td>${fd(x.dt)}</td><td class="price">${f(x.a)}</td><td style="text-align:start">${esc(x.note || '') || '-'}</td><td class="noprint"><button class="x" data-dd="${esc(x.id)}">×</button></td></tr>`).join('')}</tbody></table>`
+      + `<div class="mute" style="margin:8px 0 4px">سجل الدفعات</div><table class="frm">${H}<tbody>${o.ps.length ? o.ps.map(y => `<tr><td>${fd(y.dt)}</td><td class="price">${f(y.a)}</td><td style="text-align:start">${esc(y.note || '') || '-'}</td><td class="noprint"><button class="x" data-pd="${esc(y.id)}">×</button></td></tr>`).join('') + `<tr class="tot"><td>المجموع</td><td>${f(o.p)}</td><td colspan="2"></td></tr>` : '<tr><td colspan="4" class="mute">لا توجد دفعات</td></tr>'}</tbody></table>`
+      + `<div class="noprint" style="margin-top:8px"><div class="row"><input class="pa" type="number" inputmode="decimal" step="any" placeholder="مبلغ الدفعة"><input class="pd" type="date" value="${td()}" style="font-size:14px"></div><div class="row" style="margin-top:6px"><input class="pn" placeholder="ملاحظة" autocomplete="off"><button data-pay="1">دفعة</button></div></div></div>`;
+  }).join('') : '<p class="mute">' + (AL.length ? 'لا يوجد شخص بهذا الاسم.' : 'لا توجد ديون مسجلة.') + '</p>';
+  $('dpc').classList.toggle('hide', !AL.length);
+  $('dpc').innerHTML = `<table class="frm"><tbody><tr><td>إجمالي الديون</td><td>${f(TA)}</td></tr><tr><td>إجمالي المدفوع</td><td>${f(TP)}</td></tr><tr class="tot"><td>المتبقي</td><td>${f(TA - TP)}</td></tr></tbody></table>`;
+  $('dsm').innerHTML = AL.length ? `<table class="frm"><thead><tr><th>الاسم</th><th>الدين</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>${AL.map(o => `<tr><td><a data-go="${esc(o.n)}" style="cursor:pointer;text-decoration:underline">${esc(o.n)}</a></td><td>${f(o.a)}</td><td>${f(o.p)}</td><td class="price">${f(o.a - o.p)}</td></tr>`).join('')}<tr class="tot"><td>الإجمالي</td><td>${f(TA)}</td><td>${f(TP)}</td><td>${f(TA - TP)}</td></tr></tbody></table>` : '<p class="mute">لا توجد ديون مسجلة.</p>';
+}
+
+/* ---------- الرمز السري ---------- */
+function ask(t, err) {
+  return new Promise(res => {
+    const md = $('md'), mi = $('mi');
+    $('mt').textContent = t; $('me').textContent = err || ''; mi.value = '';
+    md.classList.remove('hide'); setTimeout(() => mi.focus(), 50);
+    const done = v => { md.classList.add('hide'); $('mok').onclick = $('mno').onclick = mi.onkeydown = null; res(v); };
+    $('mok').onclick = () => done(mi.value); $('mno').onclick = () => done(null);
+    mi.onkeydown = e => { if (e.key === 'Enter') done(mi.value); };
+  });
+}
+async function newPin(msg) {
+  const a = await ask('اختر رمزاً سرياً جديداً (أرقام)', msg); if (!a) return false;
+  const b = await ask('أعد كتابة الرمز للتأكيد'); if (b === null) return false;
+  if (a !== b) return newPin('الرمزان غير متطابقين');
+  DB.set('meta', 'pin', {h: hs(a)}); return true;
+}
+async function guard() {
+  const h = pinHash();
+  if (!h) return newPin();
+  for (let i = 0; i < 3; i++) {
+    const v = await ask('أدخل الرمز السري', i ? 'رمز خاطئ' : ''); if (v === null) return false;
+    if (hs(v) === h) return true;
+  }
+  return false;
+}
+
+/* ---------- الأحداث: السحالات ---------- */
+const tab = n => {
+  ['v1', 'v2', 'v3'].forEach((v, i) => $(v).classList.toggle('hide', n !== i + 1));
+  ['t1', 't2', 't3'].forEach((t, i) => $(t).className = n === i + 1 ? '' : 'ghost');
+};
+$('t1').onclick = () => tab(1); $('t2').onclick = () => tab(2); $('t3').onclick = () => tab(3);
+
+$('nf').onfocus = () => { $('nf').select(); drawSg(); };
+$('nf').onblur = () => setTimeout(drawSg, 150);
+$('nf').oninput = () => { UI.last = nm(); saveUI(); render(); };
+$('nf').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('ty').focus(); } };
+$('sg').onpointerdown = e => e.preventDefault();
+$('sg').onclick = e => { const n = e.target.dataset.n; if (n === undefined) return; $('nf').value = n; UI.last = n; saveUI(); $('ty').focus(); render(); };
+
+$('ty').onfocus = () => { $('ty').select(); drawTg(); };
+$('ty').oninput = () => { UI.ty = $('ty').value; saveUI(); drawTg(); };
+$('ty').onblur = () => setTimeout(drawTg, 150);
+$('ty').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('q').focus(); } };
+$('tg').onpointerdown = e => e.preventDefault();
+$('tg').onclick = e => { const n = e.target.dataset.n; if (n === undefined) return; $('ty').value = n; UI.ty = n; saveUI(); $('c').focus(); drawTg(); };
+$('q').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('c').focus(); } };
+$('c').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('w').focus(); } };
+$('w').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('p').focus(); } };
+$('p').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); addRow(); } };
+$('add').onclick = addRow;
+
+function addRow() {
+  const w = parseFloat($('w').value) || 0, p = parseFloat($('p').value) || 0, q = parseFloat($('q').value) || 0, cn = parseFloat($('c').value) || 0, n = nm();
+  if (!n || !(w > 0) || !(p > 0)) return;
+  const k = n.toLowerCase(); let c = cur(), sid;
+  if (c) sid = c.id;
+  else {
+    const old = created[k];
+    if (old && !S.sahals.some(x => x.id === old && !x.open)) sid = old;
+    else { sid = created[k] = uid(); DB.set('sahals', sid, {name: n, open: true, ts: Date.now()}); }
+  }
+  DB.set('rows', uid(), {sid, w, p, q, c: cn, t: $('ty').value.trim(), ts: Date.now()});
+  $('c').value = ''; $('w').value = ''; $('p').value = ''; $('c').focus();
+}
+$('rows').onclick = async e => { const id = e.target.dataset.i; if (id === undefined) return; if (!await guard()) return; DB.del('rows', id); };
+
+let armed = false;
+$('close').onclick = () => {
+  const c = cur(); if (!c) return;
+  if (!armed) { armed = true; $('close').textContent = 'اضغط مرة أخرى للتأكيد'; setTimeout(() => { armed = false; $('close').textContent = 'تصفية السحال وإغلاقه'; }, 4000); return; }
+  armed = false; $('close').textContent = 'تصفية السحال وإغلاقه';
+  delete created[c.name.toLowerCase()];
+  DB.set('sahals', c.id, {...c, open: false, cts: Date.now(), date: new Date().toLocaleDateString('en-GB')});
+  $('nf').value = ''; UI.last = ''; saveUI();
+};
+$('v2').onclick = async e => {
+  const re = e.target.dataset.re, del = e.target.dataset.del;
+  if (re) {
+    if (!await guard()) return;
+    const x = S.sahals.find(z => z.id === re); if (!x) return;
+    DB.set('sahals', x.id, {...x, open: true}); $('nf').value = x.name; UI.last = x.name; saveUI(); tab(1);
+  } else if (del) {
+    if (!await guard()) return;
+    DB.delMany('rows', S.rows.filter(r => r.sid === del).map(r => r.id)); DB.del('sahals', del);
+  }
+};
+$('print').onclick = () => window.print();
+
+/* ---------- الأحداث: الديون ---------- */
+$('dadd').onclick = () => {
+  const n = $('dn').value.trim(), a = parseFloat($('da').value);
+  if (!n || !(a > 0)) return;
+  DB.set('debts', uid(), {n, a, dt: $('dd').value || td(), note: $('dt').value.trim(), ts: Date.now()});
+  $('dn').value = ''; $('da').value = ''; $('dt').value = ''; $('dd').value = td(); $('dn').focus();
+};
+$('dn').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('da').focus(); } };
+$('da').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('dt').focus(); } };
+$('dt').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('dadd').click(); } };
+function dsw(n) { $('dv1').classList.toggle('hide', n !== 1); $('dv2').classList.toggle('hide', n !== 2); $('ds1').className = n === 1 ? '' : 'ghost'; $('ds2').className = n === 2 ? '' : 'ghost'; }
+$('ds1').onclick = () => dsw(1); $('ds2').onclick = () => dsw(2); $('dpr').onclick = () => window.print();
+$('ds').oninput = () => rd();
+$('dsm').onclick = e => { const n = e.target.dataset.go; if (n === undefined) return; $('ds').value = n; rd(); dsw(1); };
+$('dl').onclick = async e => {
+  const t = e.target, dd = t.dataset.dd, pd = t.dataset.pd;
+  if (t.dataset.pay) {
+    const c = t.closest('.card'), a = parseFloat(c.querySelector('.pa').value); if (!(a > 0)) return;
+    DB.set('pays', uid(), {k: c.dataset.k, a, dt: c.querySelector('.pd').value || td(), note: c.querySelector('.pn').value.trim(), ts: Date.now()});
+    return;
+  }
+  if (dd) {
+    if (!await guard()) return;
+    const x = S.debts.find(z => z.id === dd); DB.del('debts', dd);
+    if (x) {
+      const k = x.n.toLowerCase();
+      if (!S.debts.some(z => z.id !== dd && z.n.toLowerCase() === k)) DB.delMany('pays', S.pays.filter(y => y.k === k).map(y => y.id));
+    }
+    return;
+  }
+  if (pd) { if (!await guard()) return; DB.del('pays', pd); }
+};
+
+/* ---------- الإعدادات: رمز، نسخة احتياطية، استرجاع ---------- */
+$('cp').onclick = async () => { if (pinHash() && !await guard()) return; await newPin(); };
+$('bk').onclick = () => {
+  const out = {v: 2, sahals: S.sahals, rows: S.rows, debts: S.debts, pays: S.pays, meta: {pin: D.meta.pin ? D.meta.pin.h : null}};
+  const blob = new Blob([JSON.stringify(out)], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sahal-backup-' + td() + '.json';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+$('rs').onclick = () => $('rsp').classList.toggle('hide');
+$('rf').onchange = () => { const fl = $('rf').files[0]; if (!fl) return; const r = new FileReader(); r.onload = () => { $('rt').value = r.result; }; r.readAsText(fl); };
+function legacy(o) {
+  const r = {sahals: [], rows: [], debts: [], pays: [], pin: o.pin || null};
+  (o.s || []).forEach(x => {
+    const sid = 'L' + x.id, ts = +x.id || 0;
+    r.sahals.push({id: sid, name: x.name, open: !!x.open, date: x.date || '', ts});
+    (x.rows || []).forEach((w, i) => r.rows.push({id: sid + '_' + i, sid, w: w.w || 0, p: w.p || 0, q: w.q || 0, c: w.c || 0, t: w.t || '', ts: ts + i}));
+  });
+  (o.d || []).forEach(x => r.debts.push({id: 'D' + x.id, n: x.n, a: x.a, dt: x.dt, note: x.note || '', ts: +x.id || 0}));
+  (o.pay || []).forEach(y => r.pays.push({id: 'P' + y.id, k: y.k, a: y.a, dt: y.dt, note: y.note || '', ts: +y.id || 0}));
+  return r;
+}
+$('rgo').onclick = async () => {
+  let o; $('rmsg').textContent = '';
+  try { o = JSON.parse($('rt').value.trim()); } catch (e) { $('rmsg').textContent = 'المحتوى غير صالح'; return; }
+  const r = o.v === 2 ? {sahals: o.sahals || [], rows: o.rows || [], debts: o.debts || [], pays: o.pays || [], pin: (o.meta || {}).pin || null} : legacy(o);
+  if (pinHash() && !await guard()) return;
+  if (r.sahals.length) DB.setMany('sahals', r.sahals);
+  if (r.rows.length) DB.setMany('rows', r.rows);
+  if (r.debts.length) DB.setMany('debts', r.debts);
+  if (r.pays.length) DB.setMany('pays', r.pays);
+  if (r.pin && !pinHash()) DB.set('meta', 'pin', {h: r.pin});
+  $('rmsg').style.color = 'var(--acc)';
+  $('rmsg').textContent = 'تم الاسترجاع: ' + r.sahals.length + ' سحال، ' + r.rows.length + ' عملية، ' + r.debts.length + ' دين';
+  $('rt').value = '';
+};
+
+/* ---------- التشغيل ---------- */
+function showApp() { $('login').classList.add('hide'); $('app').classList.remove('hide'); }
+async function startFirebase() {
+  const V = '10.14.1', B = 'https://www.gstatic.com/firebasejs/' + V + '/';
+  const [A, F, Au] = await Promise.all([import(B + 'firebase-app.js'), import(B + 'firebase-firestore.js'), import(B + 'firebase-auth.js')]);
+  const app = A.initializeApp(cfg);
+  const db = F.initializeFirestore(app, {localCache: F.persistentLocalCache({tabManager: F.persistentMultipleTabManager()})});
+  const auth = Au.getAuth(app);
+  FBH = {db, collection: F.collection, doc: F.doc, setDoc: F.setDoc, deleteDoc: F.deleteDoc, onSnapshot: F.onSnapshot, writeBatch: F.writeBatch};
+  DB.impl = FB;
+  $('so').classList.remove('hide');
+  $('so').onclick = () => Au.signOut(auth).then(() => location.reload());
+  $('lbtn').onclick = async () => {
+    $('lerr').textContent = '';
+    try { await Au.signInWithEmailAndPassword(auth, $('le').value.trim(), $('lp').value); }
+    catch (e) { $('lerr').textContent = (e.code === 'auth/network-request-failed') ? 'لا يوجد إنترنت' : 'البريد أو كلمة السر غير صحيحة'; }
+  };
+  let started = false;
+  Au.onAuthStateChanged(auth, u => {
+    if (u) { showApp(); if (!started) { started = true; FB.start(onData); } }
+    else { $('app').classList.add('hide'); $('login').classList.remove('hide'); }
+  });
+}
+(async () => {
+  $('nf').value = UI.last || ''; $('ty').value = UI.ty || ''; $('dd').value = td();
+  if ('serviceWorker' in navigator) {
+    try {
+      await navigator.serviceWorker.register('./sw.js'); await navigator.serviceWorker.ready;
+      if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, {once: true}); setTimeout(r, 1500); });
+    } catch (e) {}
+  }
+  if (!cfg) { showApp(); DB.impl = Local; Local.init(onData); return; }
+  try { await startFirebase(); }
+  catch (e) { console.error(e); $('login').classList.remove('hide'); $('lerr').textContent = 'يلزم اتصال بالإنترنت عند أول تشغيل'; }
+})();
+</script>
+</body>
+</html>
